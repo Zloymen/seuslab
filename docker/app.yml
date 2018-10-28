@@ -1,0 +1,27 @@
+version: '2'
+services:
+    app:
+        image: seuslab/service2
+        #build: .
+        depends_on:
+            - postgresql
+            - redis
+        environment:
+            - SERVICE_PORT=8787
+            - DATABASE_HOST=postgresql
+            - DATABASE_PORT=5432
+            - DATABASE_NAME=seuslab
+            - DATABASE_USER=seuslab
+            - DATABASE_PASSWORD=seuslab
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+        ports:
+            - 9090:8787
+    postgresql:
+        extends:
+            file: postgresql.yml
+            service: postgresql
+    redis:
+        extends:
+            file: redis.yml
+            service: redis

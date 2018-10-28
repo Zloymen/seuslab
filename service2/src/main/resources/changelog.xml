@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet author="zloy" id="1">
+        <comment>
+            add table detail
+        </comment>
+        <createTable tableName="detail">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="detail_pkey"/>
+            </column>
+            <column name="redis_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="zloy" id="2">
+        <comment>
+            add table sub_detail
+        </comment>
+        <createTable tableName="sub_detail">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="subDetail_pkey"/>
+            </column>
+            <column name="detail_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="sub_detail" baseColumnNames="detail_id" constraintName="subDetail_detail_fk"
+                                 referencedTableName="detail" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet author="zloy" id="3">
+        <comment>
+            add test data
+        </comment>
+        <sql>
+            insert into detail (redis_id, name)values
+                (1, 'detail test 1'), (2, 'detail test 2'),(3, 'detail test 3'), (4, 'detail test 4'), (5, 'detail test 5')
+                , (6, 'detail test 6'), (7, 'detail test 7'), (8, 'detail test 8'), (9, 'detail test 9');
+            insert into sub_detail(detail_id, name)values
+                (1, 'sub detail test 1-1'), (1, 'sub detail test 1-2'), (1, 'sub detail test 1-3'), (2, 'sub detail test 2-4'),
+                (2, 'sub detail test 2-1'), (2, 'sub detail test 2-2'), (3, 'sub detail test 3-1'), (4, 'sub detail test 4-1'),
+                (4, 'sub detail test 4-2'), (4, 'sub detail test 4-3'), (4, 'sub detail test 4-4'), (5, 'sub detail test 5-1'),
+                (5, 'sub detail test 5-2'), (5, 'sub detail test 5-3'), (5, 'sub detail test 5-4'), (5, 'sub detail test 5-5'),
+                (6, 'sub detail test 6-1'), (6, 'sub detail test 6-2'), (6, 'sub detail test 6-3'), (6, 'sub detail test 6-4'),
+                (6, 'sub detail test 6-5'), (6, 'sub detail test 6-6'), (7, 'sub detail test 7-1'), (7, 'sub detail test 7-2'),
+                (7, 'sub detail test 7-3'), (7, 'sub detail test 7-4'), (7, 'sub detail test 7-5'), (7, 'sub detail test 7-6'),
+                (7, 'sub detail test 7-7'), (8, 'sub detail test 8-1'), (8, 'sub detail test 8-2'), (8, 'sub detail test 8-3'),
+                (8, 'sub detail test 8-4'), (8, 'sub detail test 8-5'), (8, 'sub detail test 8-6'), (8, 'sub detail test 8-7'),
+                (8, 'sub detail test 8-8'), (9, 'sub detail test 9-1'), (9, 'sub detail test 9-2'), (9, 'sub detail test 9-3'),
+                (9, 'sub detail test 9-4'), (9, 'sub detail test 9-5'), (9, 'sub detail test 9-6'), (9, 'sub detail test 9-7'),
+                (9, 'sub detail test 9-8'), (9, 'sub detail test 9-9');
+        </sql>
+    </changeSet>
+
+
+</databaseChangeLog>

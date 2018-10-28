@@ -1,0 +1,10 @@
+version: '2'
+services:
+    postgresql:
+        image: postgres:9.6.5
+        environment:
+            - POSTGRES_USER=seuslab
+            - POSTGRES_PASSWORD=seuslab
+            - POSTGRES_DB=seuslab
+        ports:
+            - 5431:5432
