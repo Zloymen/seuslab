@@ -37,7 +37,7 @@ public class RestServiceImpl implements RestService {
     @Override
     public AnswerDto getData(String projectName){
 
-        log.info("run async {}", projectName);
+        log.info("run async {} from {}", projectName, url);
         UriComponentsBuilder builder = fromHttpUrl(url).queryParam("name", projectName);
 
         return restTemplate.getForObject(builder.toUriString(), AnswerDto.class);
@@ -46,6 +46,7 @@ public class RestServiceImpl implements RestService {
     @Override
     public ListenableFuture<ResponseEntity<AnswerDto>> getOldAsyncData(String projectName){
         UriComponentsBuilder builder = fromHttpUrl(url).queryParam("name", projectName);
+        log.debug(builder.toUriString());
         return asyncRestTemplate.getForEntity(builder.toUriString(), AnswerDto.class);
     }
 

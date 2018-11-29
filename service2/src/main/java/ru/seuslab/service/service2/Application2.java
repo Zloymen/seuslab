@@ -3,7 +3,6 @@ package ru.seuslab.service.service2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +17,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @ComponentScan(basePackages = {"ru.seuslab.service.service2.controller", "ru.seuslab.service.service2.service"})
 @EnableJpaRepositories("ru.seuslab.service.service2.dao")
-@EnableAutoConfiguration
 @EntityScan( basePackageClasses = { Application2.class, Jsr310JpaConverters.class })
 @EnableTransactionManagement
 @SpringBootApplication

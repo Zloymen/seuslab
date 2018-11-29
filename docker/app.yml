@@ -1,8 +1,18 @@
 version: '2'
 services:
-    app:
+    service1:
+        image: seuslab/service1
+        volumes:
+            - '/work/other/seuslab/data:/data'
+        depends_on:
+            - service2
+            - redis
+        environment:
+            - DATA_PATH=/data
+            - SERVICE2_NAME=service2
+            - SERVICE2_PORT=8787
+    service2:
         image: seuslab/service2
-        #build: .
         depends_on:
             - postgresql
             - redis
@@ -15,8 +25,6 @@ services:
             - DATABASE_PASSWORD=seuslab
             - REDIS_HOST=redis
             - REDIS_PORT=6379
-        ports:
-            - 9090:8787
     postgresql:
         extends:
             file: postgresql.yml

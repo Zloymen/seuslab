@@ -11,6 +11,7 @@ import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -41,14 +42,16 @@ public class Application1 {
     @Autowired
     private RestService restService;
 
+    @Value("${pathData}")
+    private String path;
+
     @Bean
     RoutesBuilder myRouter() {
         return new RouteBuilder() {
             @Override
             public void configure()  {
-                from("file:data/inbox?noop=true")
-                        .threads(10)
-                        .log("test")
+                from("file:" + path + "/inbox?noop=true")
+                    .log("test")
 
                     .process(exchange -> {
 
@@ -69,13 +72,12 @@ public class Application1 {
                             exchange.getIn().setBody(list);
                         }
 
-
-
                     })
                         .split(simple("${body}"))
                         .parallelProcessing(true)
                         .to("direct:record");
-                from("direct:record")/*.threads(10)*/.log("Processing done ${body}")
+                from("direct:record")
+                        .log("Processing done ${body}")
 
                         .process(exchange -> {
                         Message message = exchange.getIn();
@@ -97,7 +99,6 @@ public class Application1 {
                         .to("direct:create_file");
 
                 from("direct:create_file")
-                        //.threads(10)
                         .process(exchange -> {
                             Message message = exchange.getIn();
                             String projectName = exchange.getIn().getHeader("project_name", String.class);
@@ -125,7 +126,7 @@ public class Application1 {
                                 );
                             }
                         })
-                        .to("file:data/outbox");
+                        .to("file:" + path + "/outbox");
             }
         };
     }
