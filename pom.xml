@@ -8,9 +8,12 @@
     <artifactId>system</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+
     <modules>
-        <module>service1</module>
-        <module>service2</module>
+        <!--<module>service1</module>-->
+        <!--<module>service2</module>-->
+		<module>service2WithFlux</module>
+        <module>service1WithFlux</module>
     </modules>
 
     <parent>
