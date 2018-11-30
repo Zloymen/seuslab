@@ -11,6 +11,7 @@ import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -36,12 +37,15 @@ public class Application1 {
     @Autowired
     private RestService restService;
 
+    @Value("${pathData}")
+    private String path;
+
     @Bean
     RoutesBuilder myRouter() {
         return new RouteBuilder() {
             @Override
             public void configure() {
-                from("file:data/inbox?noop=true")
+                from("file:" + path + "/inbox?noop=true")
                         .threads(10)
                         .log("test")
 
@@ -121,7 +125,7 @@ public class Application1 {
                                 );
                             }
                         })
-                        .to("file:data/outbox");
+                        .to("file:" + path + "/outbox");
             }
         };
     }

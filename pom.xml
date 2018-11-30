@@ -11,8 +11,8 @@
 
     <modules>
         <!--<module>service1</module>-->
-        <!--<module>service2</module>-->
-		<module>service2WithFlux</module>
+        <module>service2</module>
+<!--		<module>service2WithFlux</module>-->
         <module>service1WithFlux</module>
     </modules>
 
