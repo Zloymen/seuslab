@@ -91,4 +91,28 @@
 запускаем сервис 1 
 
     копируем папку data в service1/target
-    java -jar service1/target/service1-1.0-SNAPSHOT.jar    
+    java -jar service1/target/service1-1.0-SNAPSHOT.jar   
+    
+Вариант 4. 
+
+на локальной машине должен быть установлен Docker, Docker-compose.
+
+собираем jar файлы с помощью maven
+
+    mvn install
+    
+создаем docker образ
+    
+    cd service2
+    mvn com.spotify:dockerfile-maven-plugin:1.3.6:build
+
+редактируем путь к папке с исходними данными в compose файл app.yml
+
+    volumes:
+                - '{путь к локальной папке с исходними данными}:/data'
+    
+запускаем yml файл 
+
+    cd docker
+    docker-compose -f app.yml up
+
