@@ -14,12 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.client.RestTemplate;
 import reactor.core.publisher.Flux;
 import ru.seuslab.service.fluxservice1.dto.DetailDto;
 import ru.seuslab.service.fluxservice1.dto.InputDataDto;
@@ -27,10 +23,9 @@ import ru.seuslab.service.fluxservice1.dto.SubDetailDto;
 import ru.seuslab.service.fluxservice1.service.RestService;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @EnableAsync
@@ -45,67 +40,69 @@ public class Application1 {
     RoutesBuilder myRouter() {
         return new RouteBuilder() {
             @Override
-            public void configure()  {
+            public void configure() {
                 from("file:data/inbox?noop=true")
                         .threads(10)
                         .log("test")
 
-                    .process(exchange -> {
+                        .process(exchange -> {
 
-                        Message message = exchange.getIn();
-                        File fileToProcess = message.getBody(File.class);
-
-
-                        try(FileInputStream fin = new FileInputStream(fileToProcess);
-                            Reader reader = new InputStreamReader(fin)){
-
-                            CsvToBean<InputDataDto> csvToBean = new CsvToBeanBuilder(reader)
-                                    .withType(InputDataDto.class)
-                                    .withSkipLines(0)
-                                    .build();
-
-                            List<InputDataDto> list = csvToBean.parse();
-
-                            exchange.getIn().setBody(list);
-                        }
+                            Message message = exchange.getIn();
+                            File fileToProcess = message.getBody(File.class);
 
 
+                            try (FileInputStream fin = new FileInputStream(fileToProcess);
+                                 Reader reader = new InputStreamReader(fin)) {
 
-                    })
+                                CsvToBean<InputDataDto> csvToBean = new CsvToBeanBuilder(reader)
+                                        .withType(InputDataDto.class)
+                                        .withSkipLines(0)
+                                        .build();
+
+                                List<InputDataDto> list = csvToBean.parse();
+
+                                exchange.getIn().setBody(list);
+                            }
+                        })
                         .split(simple("${body}"))
                         .parallelProcessing(true)
                         .to("direct:record");
-                from("direct:record").log("Processing done ${body}")
+
+                from("direct:record").log("Processing run ${body}").doTry()
 
                         .process(exchange -> {
-                        Message message = exchange.getIn();
+                            Message message = exchange.getIn();
 
-                        InputDataDto record = message.getBody(InputDataDto.class);
+                            InputDataDto record = message.getBody(InputDataDto.class);
 
-                        log.info("run {}", record.getName());
+                            log.info("run {}", record.getName());
 
-                        Flux<DetailDto> detailDtos = restService.getAsyncData(record.getName(), record.getTimeout());
+                            Flux<DetailDto> detailDtos = restService.getAsyncData(record.getName(), record.getTimeout());
 
-                        exchange.getIn().setBody(detailDtos.toStream().collect(Collectors.toList()));
-                        exchange.getIn().setHeader("project_name", record.getName());
+                            exchange.getIn().setBody(detailDtos.toStream().collect(Collectors.toList()));
+                            exchange.getIn().setHeader("project_name", record.getName());
 
-                    })
-                        .log("Processing done ${body}")
+                        })
+                        .log("Processing done ${body}").to("direct:splite_response")
+                        .doCatch(TimeoutException.class)
+                        .log("Processing timeout ${body}").to("direct:record");
+
+                from("direct:splite_response")
+                        .log("Splite processing ${body}")
                         .split(simple("${body}"))
                         .parallelProcessing(true)
                         .to("direct:create_file");
 
                 from("direct:create_file")
-                        //.threads(10)
+                        .log("create file ${body}")
                         .process(exchange -> {
                             Message message = exchange.getIn();
                             String projectName = exchange.getIn().getHeader("project_name", String.class);
                             DetailDto record = message.getBody(DetailDto.class);
 
 
-
-                            try( OutputStream fin = new ByteArrayOutputStream()){
-                                try(Writer writer = new OutputStreamWriter(fin)) {
+                            try (OutputStream fin = new ByteArrayOutputStream()) {
+                                try (Writer writer = new OutputStreamWriter(fin)) {
 
                                     StatefulBeanToCsv<SubDetailDto> beanToCsv = new StatefulBeanToCsvBuilder(writer)
                                             .withQuotechar(CSVWriter.NO_QUOTE_CHARACTER)
@@ -114,13 +111,13 @@ public class Application1 {
                                     beanToCsv.write(record.getSubDetails());
                                 }
 
-                                exchange.getOut().setBody( fin.toString());
+                                exchange.getOut().setBody(fin.toString());
                                 exchange.getOut().getHeaders().putAll(exchange.getIn().getHeaders());
                                 exchange.getOut().setHeader("CamelFileName",
                                         String.format("%s_%s_%s.csv",
                                                 StringUtils.deleteWhitespace(projectName),
                                                 StringUtils.deleteWhitespace(record.getName()),
-                                                record.getId().toString() )
+                                                record.getId().toString())
                                 );
                             }
                         })
@@ -129,19 +126,6 @@ public class Application1 {
         };
     }
 
-
-    @Bean
-    RestTemplate restTemplate(){
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setSupportedMediaTypes(Collections.singletonList(MediaType.ALL));
-        messageConverters.add(converter);
-        restTemplate.setMessageConverters(messageConverters);
-        return restTemplate;
-    }
 
     @Bean
     public Executor threadPoolTaskExecutor() {

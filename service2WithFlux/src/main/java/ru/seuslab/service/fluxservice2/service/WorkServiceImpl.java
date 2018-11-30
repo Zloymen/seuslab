@@ -1,6 +1,7 @@
 package ru.seuslab.service.fluxservice2.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -16,7 +17,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WorkServiceImpl implements WorkService {
 
-    private final ReactiveRedisOperations<String, List<Long>> redisTemplate;
+    @Autowired
+    private ReactiveRedisOperations<String, List<Long>> redisTemplate;
     private final DetailDao detailDao;
 
     private static final String KEY = "project";
